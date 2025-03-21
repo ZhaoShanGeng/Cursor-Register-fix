@@ -13,26 +13,10 @@ from temp_mails import Tempmail_io, Guerillamail_com
 from helper.cursor_register import CursorRegister
 from helper.email import *
 
-import time
-
 # Parameters for debugging purpose
 hide_account_info = os.getenv('HIDE_ACCOUNT_INFO', 'false').lower() == 'true'
 enable_headless = os.getenv('ENABLE_HEADLESS', 'false').lower() == 'true'
 enable_browser_log = os.getenv('ENABLE_BROWSER_LOG', 'true').lower() == 'true' or not enable_headless
-
-# 新增1
-class RetryingImap(Imap):
-    def get_code(self):  # Assuming the method to fetch the code is named 'get_code'
-        max_retries = 5
-        retry_delay = 10  # seconds
-        for attempt in range(max_retries):
-            code = super().get_code()
-            if code:
-                return code
-            print(f"[Register] Attempt {attempt + 1}: No code found, retrying in {retry_delay} seconds...")
-            time.sleep(retry_delay)
-        return None
-# 新增1结束
 
 def register_cursor_core(register_config, options):
 
@@ -56,8 +40,7 @@ def register_cursor_core(register_config, options):
         imap_username = imap_config.username
         imap_password = imap_config.password
         
-        # email_server = Imap(imap_server, imap_port, imap_username, imap_password, email_to=email_address)
-        email_server = RetryingImap(imap_server, imap_port, imap_username, imap_password, email_to=email_address) # 使用重试延迟函数
+        email_server = Imap(imap_server, imap_port, imap_username, imap_password, email_to=email_address)
 
     register = CursorRegister(browser, email_server)
     tab_signin, status = register.sign_in(email_address)
